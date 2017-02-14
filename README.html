@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>README.html</title>
+
+</head>
+
+<body>
+
+<h1>Service</h1>
+
+<h1>Types of Services</h1>
+
+<h2>Named vs. Anonymous</h2>
+
+<p>There's a fundamental difference between named and anonymous servers.
+The difference isn't one of implementation—the two forms are basically
+the same. It's a difference of intent.</p>
+
+<p>A named server is effectively a singleton—a global object. If it has
+state, that state is only meaningful globally—it is not the property
+of any one client process. Loggers, time services, and so on are all
+examples of named, singleton servers.</p>
+
+<p>Anonymous services have a different intent. Because they are accessed
+via a handle (a reference or) pid, they have an owner—the process that
+has that handle. Ownership can be shared, but that sharing is
+controlled by the original creator of the server.</p>
+
+<p>The state of anonymous servers can therefore be specific to a
+particular owner. If we use a server to have a conversation with a
+remote service, for example, we own that server, and it can maintain
+the state of the connection between requests.</p>
+
+<h2>Solo vs Pooled</h2>
+
+<p>A solo service is a single process. When a client makes a request,
+that process is executed. No other client can run code in that service
+until it is idle again.</p>
+
+<p>A pooled service contains zero or more workers. Each worker is
+equivalent to a solo service, in that it handles work requests for one
+client at a time. However, a pooled service also contains a pool
+manager (or scheduler). Requests for the pool service are not sent to
+the worker directly. Instead, they are sent to the scheduler. If it
+has a free worker process, it forwards on the request. If it does not,
+it delays execution of the caller until a worker becomes free (or a
+timeout occurs).</p>
+
+<p>A pooled service can be configured to support some maximum number of
+workers. It will dynamically create new workers to handle requests if
+all existing workers are busy <em>and</em> if the worker count is less than
+the maximum.</p>
+
+<p>Pooled services are useful when you want to achieve parallelism and
+the work performed by the service is likely to run for a nontrivial
+time. They are also useful as a way to hold on to expensive resources
+(such as database connections).</p>
+
+<h1>Coding Model</h1>
+
+<p>Permuting named and anonymous services with solo and pooled
+provisioning gives us four categories of service.</p>
+
+<p>From a coding standpoint, though, the most significant difference is
+between named and anonymous services (whether they are solo or
+pooled).</p>
+
+<p>A named service has its own state. That state is not passed to it on
+each request.</p>
+
+<p>An anonymous service (logically) does not have a single state.
+Instead, the state is established for it each time it is called
+(typically by passing it a server pid).</p>
+
+<p>This means that our APIs will be different. For a named service, such
+as a logger, we might write:</p>
+
+<p>~~~ elixir
+Logger.info("Starting")
+~~~</p>
+
+<p>For an anonymous service, such as a database connection, we need to
+create it to get a handle, and then pass that handle to it on each
+request.</p>
+
+<p>~~~ elixir
+{ :ok, handle } = DBConnection.start_link(«params»)</p>
+
+<h1>...</h1>
+
+<p>DB.insert(handle, «stuff»)
+~~~</p>
+
+<p>Because of this, Diet.Service comes in two flavors, one for named
+services and one for anonymous ones.</p>
+
+<h2>Defining a Named Service</h2>
+
+<p>~~~ elixir
+defmodule MyLogger do</p>
+
+<p>defstruct device: :stdio</p>
+
+<p>use Diet.Service.Named,
+      state: [ logger: %MyLogger{} ]</p>
+
+<p>def info(msg) do
+    IO.puts(logger.device, "-- #{msg}")
+  end</p>
+
+<p>def set<em>device(new</em>device) do
+    set<em>state(%{ logger | device: new</em>device}) do
+      :ok
+    end
+  end</p>
+
+<p>end
+~~~</p>
+
+<p>By default, <code>MyLogger</code> will be spawned when the application starts.
+The service will (by default) have the same name as the module
+(<code>Elixir.MyLogger</code> in this case).</p>
+
+<p>Its state is defined by the clause:</p>
+
+<p>~~~ elixir
+state: [ logger: %MyLogger{} ]
+~~~</p>
+
+<p>Inside the module's public functions, the state will be made available
+via the variable <code>logger</code>.[^fn-magic] The initial value of the state will be the
+struct defined in this same module.</p>
+
+<p>[^fn-magic]: Yes, this is magic, and it's probably frowned on by José. However, doing
+    this makes the API into the module consistent (but that's a
+    discussion that doesn't fit in a footnote). It's really no
+    different to the implicit <code>this</code> variable in OO code.</p>
+
+<h2>Defining an Anonymous Service</h2>
+
+<p>~~~ elixir
+defmodule KVStore do</p>
+
+<p>use Diet.Service.Anon,
+      state: %{}</p>
+
+<p>def put(store, key, value) do
+    set_state(Map.put(store, key, value), do: value
+  end</p>
+
+<p>def get(store, key) do
+    store[key]
+  end</p>
+
+<p>end
+~~~</p>
+
+<p>Here's how you'd use this:</p>
+
+<p>~~~ elixir
+handle = KVStore.new()</p>
+
+<p>KVStore.put(handle, :name, "José")</p>
+
+<p>IO.puts KVStore.get(handle, :name)
+~~~</p>
+
+<p>What if you wanted to pass some initial values into the store? Simply
+override the <code>new</code> function. It receives the default initial value of
+the state, along with the argument passed by the client to <code>new</code>.</p>
+
+<p>~~~ elixir
+defmodule KVStore do</p>
+
+<p>use Diet.Service.Anon,
+      state: %{}</p>
+
+<p>def new(default<em>state, initial</em>values) when is<em>list(initial</em>values) do
+    initial<em>values |> Enum.into(default</em>state)
+  end</p>
+
+<p># ...
+end
+~~~</p>
+
+<p>Call this with:</p>
+
+<p>~~~ elixir
+handle = KVStore.new(name: "Jose", language: "Elixir")</p>
+
+<p>KVStore.put(handle, :name, "José")</p>
+
+<p>IO.puts KVStore.get(handle, :name)      # => José
+IO.puts KVStore.get(handle, :language)  # => Elixir
+~~~</p>
+
+<h2>Creating Pooled Services</h2>
+
+<p>You can create both named and anonymous pooled services. Simply add
+the <code>pool:</code> option:</p>
+
+<p>~~~ elixir
+defmodule DBConnection do
+  defstruct conn: nil, created: fn () -> DateTime.utc_now() end</p>
+
+<p>use(Diet.Service.Named,
+      state: [ db: %DBConnection{} ],
+      pool:  [ min: 2, max: 10, retire_after: 5*60 ])</p>
+
+<p>def new(state) do
+    connection<em>params = Application.fetch</em>env(app, :db<em>params)
+    conn = PG.connect(connection</em>params)
+    %{ state | conn: conn }
+  end</p>
+
+<p>def execute(stmt) do
+    PG.execute(db.conn, stmt)
+  end
+  # ...
+end
+~~~</p>
+
+<p>This creates a pool of database connections. It will always have at
+least 2 workers running, and may have up to 10. Idle workers will be
+culled after 5 minutes.</p>
+
+<p>Here's how it is called:</p>
+
+<p>~~~ elixir
+result = DBConnection.execute("select * from table1")
+~~~</p>
+
+<p>You can also create anonymous pools. As with other anonymous services,
+you'll need to keep track of the handle.</p>
+
+<p>Here's the same database connection pool code, but set up to allow you
+to create different pools for different databases.</p>
+
+<p>~~~ elixir
+defmodule DBConnection do
+  defstruct conn: nil, created: fn () -> DateTime.utc_now() end</p>
+
+<p>use(Diet.Service.Anonymous,
+      state: [ db: %DBConnection{} ],
+      pool:  [ min: 2, max: 10, retire_after: 5*60 ])</p>
+
+<p>def new(state, connection<em>params) do
+    conn = PG.connect(connection</em>params)
+    %{ state | conn: conn }
+  end</p>
+
+<p>def execute(stmt) do
+    PG.execute(db.conn, stmt)
+  end
+  # ...
+end
+~~~</p>
+
+<p>The only changes were to alter the type to <code>Diet.Service.Anonymous</code>
+and to change the <code>new</code> function to accept the database connection to
+be used.</p>
+
+<h1>Supervision</h1>
+
+<p>The supervision rules differ between solo and pooled services, and
+also between named and anonymous services.</p>
+
+<h2>Solo Service Supervision</h2>
+
+<p>By default, solo services are created without supervisors. They are
+linked to the process that created them.</p>
+
+<p>You can have Diet create supervisors for you. </p>
+
+<h3>Named Solo Service Supervision</h3>
+
+<p>For a named
+service, Diet creates a static one-for-one supervisor. You can
+override the supervision options.</p>
+
+<p>~~~ elixir
+defmodule Logger do</p>
+
+<p>use(Diet.Service.Named,
+      supervise: [ name: :log_super ])</p>
+
+<p># ...
+~~~</p>
+
+<h3>Anonymous Solo Service Supervision</h3>
+
+<p>Anonymous services are created on an ad-hoc basis, and so Diet uses a
+default supervision strategy of <code>simple_one_for_one</code>. </p>
+
+<h2>Pooled Supervision</h2>
+
+<p>When you create a pooled service, Diet always creates a couple of
+supervisors and a scheduler process. This looks like the following:</p>
+
+<pre><code>                       +--------------------+
+                       |                    |
+                       |  Pool Supervisor   |
+                     / |                    |\
+                    /  +--------------------+ \
+                   /                           \
++--------------------+                       +--------------------+
+|                    |                       |                    |
+|    Scheduler       |                       | Worker Supervisor  |
+|                    |                       |                    |
++--------------------+                       +--------------------+
+                                                       |
+                                                       |
+                                                       v
+                                                    +-----------------+
+                                                +------------------+  |
+                                           +--------------------+  |  |
+                                           |                    |  |  |
+                                           |      Workers       |  |--+
+                                           |                    |--+
+                                           +--------------------+
+</code></pre>
+
+<p>When your client code accesses a pooled service, it is actually
+talking to the scheduler process.</p>
+
+<h2>State Protection</h2>
+
+<p>If you add the option <code>protect_state: true</code>, Diet will automatically
+create an additional top-level supervisor and a vault process that does
+nothing but save the state of services between requests. Should a
+service crash, the supervisor will restart it using the saved state
+from the vault, rather than using the default state.</p>
+
+</body>
+</html>
