@@ -1,5 +1,155 @@
 # Service
 
+Erlang encourages us to write our code as self-contained servers and
+applications. Elixir makes it even easier by removing much of the
+boilerplate needed to create an Erlang GenServer.
+
+However, creating these servers is often more work than it needs to
+be. And, unfortunately, following good design practices adds even more
+work, in the form of duplication.
+
+The Diet.Service library aims to make it easier for newcomers to craft
+well designed services. It doesn't replace GenServer. It is simply a
+layer on top that handles the most common GenServer use cases. The
+intent is to remove any excuse that people might have for not writing
+their Elixir code using a ridiculously large number of trivial
+services.
+
+# Basic Example
+
+You can think of an Erlang process as a remarkably pure implementation
+of an object. It is self contained, with private state, and with an
+interface that is accessed by sending messages. This harks straight
+back to the early days of Smalltalk.
+
+Diet.Service draws on that idea as a notation. Here's a simple service
+that keeps a running total:
+
+~~~ elixir
+defmodule RunningTotal do
+
+  use Diet.Service.Anonymous,
+    state: 0
+
+  def add(total, value) do
+    set_state(value+total)
+  end
+end
+~~~
+
+The first parameter to `add` is the current state, and the second is
+the value being passed in.
+
+You'd call it using
+
+~~~ elixir
+rt = RunningTotal.new()
+
+RunningTotal.add(rt, 3)  #=> 3
+RunningTotal.add(rt, 4)  #=> 7
+RunningTotal.add(rt, 5)  #=> 12
+~~~
+
+Behind the scenes, Diet has created a pure implementation of our
+totaller, along with a GenServer that delegates to that
+implementation. The code would look something like this:
+
+~~~ elixir
+
+defmodule RunningTotal do
+
+  use GenServer
+
+  def new() do
+    GenServer.start_link(__MODULE__, [])
+  end
+
+  def init() do
+    { :ok, 0 }
+  end
+
+  def add(pid, value) do
+    GenServer.send(pid, { :add, value })
+  end
+
+  def handle_call({ :add, value }, _, state) do
+    RunningTotal.Implementation.add(state, value)
+    |> Diet.Service.decode_reply
+  end
+
+  defmodule RunningTotal.Implementation do
+    def add(total, value) do
+      total + value
+    end
+  end
+end
+~~~
+
+Note how we can test this implementation without starting a separate
+process.
+
+
+We could instead make this a singleton _named service_:
+
+~~~ elixir
+defmodule RunningTotal do
+
+  use Diet.Service.Named,
+    state: [ total: 0 ]
+
+  def add(value) do
+    set_state(value+total)
+  end
+end
+~~~
+
+You'd call it using
+
+~~~ elixir
+RunningTotal.add(3)  #=> 3
+RunningTotal.add(4)  #=> 7
+RunningTotal.add(5)  #=> 12
+~~~
+
+Both named and anonymous services can be turned into pools of workers
+by simply adding a `pool:` option.
+
+~~~ elixir
+defmodule TwitterFeed do
+
+  use Diet.Service.Named,
+    pool: [ min: 2, max: 20 ]
+
+  def fetch(name) do
+    # ...
+  end
+end
+~~~
+
+Calls to `TwitterFeed.fetch` would run in parallel, up to a maximum of
+20.
+
+Finally, we can tell Diet not to generate a server at all.
+
+~~~ elixir
+defmodule RunningTotal do
+
+  use Diet.Service.Inline,
+    state: 0
+
+  def add(total, value) do
+    set_state(value+total)
+  end
+end
+~~~
+
+In this case, `set_state(value+total)` becomes just `value+total`.
+
+The cool thing is we can switch between not running a process, running
+a single server, or running a pool of servers by changing a single
+declaration in the module.
+
+
 # Types of Services
 
 ## Named vs. Anonymous
