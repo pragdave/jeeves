@@ -43,7 +43,7 @@ the value being passed in.
 You'd call it using
 
 ~~~ elixir
-rt = RunningTotal.new()
+rt = RunningTotal.run()
 
 RunningTotal.add(rt, 3)  #=> 3
 RunningTotal.add(rt, 4)  #=> 7
@@ -298,7 +298,7 @@ end
 Here's how you'd use this:
 
 ~~~ elixir
-handle = KVStore.new()
+handle = KVStore.run()
 
 KVStore.put(handle, :name, "José")
 
@@ -306,7 +306,7 @@ IO.puts KVStore.get(handle, :name)
 ~~~
 
 What if you wanted to pass some initial values into the store? Simply
-override the `new` function. It receives the default initial value of
+override the `run` function. It receives the default initial value of
 the state, along with the argument passed by the client to `new`.
 
 ~~~ elixir
@@ -315,7 +315,7 @@ defmodule KVStore do
   use Diet.Service.Anon,
       state: %{}
 
-  def new(default_state, initial_values) when is_list(initial_values) do
+  def run(default_state, initial_values) when is_list(initial_values) do
     initial_values |> Enum.into(default_state)
   end
   
@@ -326,7 +326,7 @@ end
 Call this with:
 
 ~~~ elixir
-handle = KVStore.new(name: "Jose", language: "Elixir")
+handle = KVStore.run(name: "Jose", language: "Elixir")
 
 KVStore.put(handle, :name, "José")
 
