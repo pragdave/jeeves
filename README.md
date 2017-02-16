@@ -281,7 +281,7 @@ struct defined in this same module.
 ~~~ elixir
 defmodule KVStore do
 
-  use Diet.Service.Anon,
+  use Diet.Service.Anonymous
       state: %{}
 
   def put(store, key, value) do
@@ -299,23 +299,27 @@ Here's how you'd use this:
 
 ~~~ elixir
 handle = KVStore.run()
-
 KVStore.put(handle, :name, "José")
-
 IO.puts KVStore.get(handle, :name)
 ~~~
 
-What if you wanted to pass some initial values into the store? Simply
-override the `run` function. It receives the default initial value of
-the state, along with the argument passed by the client to `new`.
+What if you wanted to pass some initial values into the store? There
+are a couple of techniques. First, any parameter passed to `run()`
+will by default become the initial state.
+
+But if your service has some specific internal formatting that must be
+applied to this state, simply provide an `init_state()` function. This
+receives the default state and the parameter passed to `run()`, and
+returns the updated state.
+
 
 ~~~ elixir
 defmodule KVStore do
 
-  use Diet.Service.Anon,
+  use Diet.Service.Anonymous
       state: %{}
 
-  def run(default_state, initial_values) when is_list(initial_values) do
+  def init_state(default_state, initial_values) when is_list(initial_values) do
     initial_values |> Enum.into(default_state)
   end
   
@@ -347,7 +351,7 @@ defmodule DBConnection do
       state: [ db: %DBConnection{} ],
       pool:  [ min: 2, max: 10, retire_after: 5*60 ])
 
-  def new(state) do
+  def init_state(state, _) do
     connection_params = Application.fetch_env(app, :db_params)
     conn = PG.connect(connection_params)
     %{ state | conn: conn }
@@ -384,7 +388,7 @@ defmodule DBConnection do
       state: [ db: %DBConnection{} ],
       pool:  [ min: 2, max: 10, retire_after: 5*60 ])
 
-  def new(state, connection_params) do
+  def init_state(state, connection_params) do
     conn = PG.connect(connection_params)
     %{ state | conn: conn }
   end
