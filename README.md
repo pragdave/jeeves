@@ -17,9 +17,9 @@ defmodule Fib do
 
   def fib(n), do: _fib(n)
 
-  def _fib(0), do: 0
-  def _fib(1), do: 1
-  def _fib(n), do: _fib(n-1) + _fib(n-2)    # terribly inefficient
+  defp _fib(0), do: 0
+  defp _fib(1), do: 1
+  defp _fib(n), do: _fib(n-1) + _fib(n-2)    # terribly inefficient
 end
 ~~~
 
@@ -35,20 +35,58 @@ And invoke one of the pool of workers using
 Fib.fib(20)   # => 6765
 ~~~
 
-We can use state to cache already calculated values, making the
-process O(n) rather than O(1.6^n).
+We can use GenServer state to cache already calculated values, making the
+process O(n) rather than O(1.6ⁿ).
 
 ~~~ elixir
 defmodule Fib do
   use Service.Pooled, 
-      state:       %{}, 
+      state:       %{ 0 => 0, 1 => 1}, 
       state_name: :cache
 
-  def fib(n), do: _fib(n, cache)
+  def fib(n) do
+    case cache[n] do
+    nil ->
+      fib_n = fib(n-2, cache) + fib(n-1, cache)
+      update_state(Map.put(cache, n, fib_n)) do
+        fib_n
+        end
+    cached_result ->
+      cached_result      
+    end 
+  end
+end
+~~~
 
-  defp _fib(0), do: 0
-  defp _fib(1), do: 1
-  defp _fib(n), do: fib(n-1) + fib(n-2)    # terribly inefficient
+In the previous example each worker maintains its own cache. In the
+Fibonacci example, that's fine, as the cost of loading the cache is
+small. But if we _wanted_ to share a single cache between all workers,
+we can add it as a named service:
+
+~~~ elixir
+defmodule FibCache do
+  use Service.Named, state: %{ 0 => 0, 1 => 1 }
+
+  def get(n), do: state[n]
+  def put(n, fib_n) do
+    state
+    |> Map.put(n, fib_n)
+    |> update_state(do: fib_n)
+  end
+end
+
+defmodule Fib do
+  use Service.Pooled, 
+
+  def fib(n) do
+    case FibCache.get(n) do
+    nil ->
+      with fib_n = fib(n-2) + fib(n-1),
+      do: FibCache.put(n, fib_n)   # => returns result
+    cached_result ->
+      cached_result
+    end 
+  end
 end
 ~~~
 
@@ -80,8 +118,11 @@ of an object. It is self contained, with private state, and with an
 interface that is accessed by sending messages. This harks straight
 back to the early days of Smalltalk.
 
-Diet.Service draws on that idea as a notation. Here's a simple service
-that implements a key-value store.
+Service draws on that idea. When you include it in a module, that
+module's public functions become the interface to the service. You
+write the functions, and Service rewrites them into a GenServer.
+
+Here's a simple service that implements a key-value store.
 
 ~~~ elixir
 defmodule KVStore do
@@ -97,7 +138,6 @@ defmodule KVStore do
   def get(store, key) do
     store[key]
   end
-
 end
 ~~~
 
@@ -192,7 +232,7 @@ During compilation, you'll see the code that will actually be run:
 
 We can test this implementation without starting a separate
 process by simply calling functions in `KVStore.Implementation`. You
-simply have to supply the state, and allow for the fact that the responses
+have to supply the state, and allow for the fact that the responses
 will include the updated state if `set_state` is called.
 
 ~~~ elixir 
@@ -230,7 +270,6 @@ defmodule NamedKVStore do
   def get(key) do
     kvs[key]
   end
-
 end
 ~~~
 
@@ -244,8 +283,6 @@ automatically made available inside the service's functions in a
 variable. By default, this variable is called `state`, but the
 NamedKVStore example changes this to something more meaningful, `kvs`.
 
-
-
 You'd call the named KV store service using
 
 ~~~ elixir
@@ -256,8 +293,7 @@ NamedKVStore.get(:name)            # => "Elixir"
 
 ## Pooled Services
 
-Named services can be turned into pools of workers
-by changing to `Service.Pooled`.
+Named services can be turned into pools of workers by changing to `Service.Pooled`.
 
 ~~~ elixir
 defmodule TwitterFeed do
@@ -272,7 +308,7 @@ end
 ~~~
 
 Calls to `TwitterFeed.fetch` would run in parallel, up to a maximum of
-20.
+20 processes.
 
 
 ## Inline code
