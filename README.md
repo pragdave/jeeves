@@ -1,3 +1,61 @@
+_tl;dr_
+
+* create anonymous, named, and pooled services by just specifying
+  their functions
+* have them automatically wrapped in standard OTP GenServers and
+  Supervisors.
+* simplify testing with automatically generated nonservice
+  implementations.
+  
+
+Here's a pool of between 2 and 5 Fibonacci number services, each
+supervised and run in a separate, parallel process:
+
+~~~ elixir
+defmodule Fib do
+  use Service.Pooled
+
+  def fib(n), do: _fib(n)
+
+  def _fib(0), do: 0
+  def _fib(1), do: 1
+  def _fib(n), do: _fib(n-1) + _fib(n-2)    # terribly inefficient
+end
+~~~
+
+You'd start the pool using
+
+~~~ elixir
+Fib.run
+~~~
+
+And invoke one of the pool of workers using
+
+~~~ elixir
+Fib.fib(20)   # => 6765
+~~~
+
+We can use state to cache already calculated values, making the
+process O(n) rather than O(1.6^n).
+
+~~~ elixir
+defmodule Fib do
+  use Service.Pooled, 
+      state:       %{}, 
+      state_name: :cache
+
+  def fib(n), do: _fib(n, cache)
+
+  defp _fib(0), do: 0
+  defp _fib(1), do: 1
+  defp _fib(n), do: fib(n-1) + fib(n-2)    # terribly inefficient
+end
+~~~
+
+
+
+----
+
 # Service
 
 Erlang encourages us to write our code as self-contained servers and
