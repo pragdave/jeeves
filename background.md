@@ -115,14 +115,14 @@ Its state is defined by the clause:
 state: [ logger: %MyLogger{} ]
 ~~~
 
-Inside the module's public functions, the state will be made available
-via the variable `logger`.[^fn-magic] The initial value of the state will be the
-struct defined in this same module.
+<span id="why-magic-state">Inside</span> the module's public functions, the state
+will be made available via the variable `logger`. The initial value of
+the state will be the struct defined in this same module.
 
-[^fn-magic]: Yes, this is magic, and it's probably frowned on by José. However, doing
-    this makes the API into the module consistent (but that's a
-    discussion that doesn't fit in a footnote). It's really no
-    different to the implicit `this` variable in OO code.
+Yes, this is magic, and it's probably frowned on by José. However,
+doing this makes the module's API consistent. You call an API function
+using the signature in the module definition. It's really no different
+to the implicit `this` variable in OO code.
 
 ## Defining an Anonymous Service
 

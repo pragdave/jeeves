@@ -333,25 +333,30 @@ declaration in the module.
 # More Information
 
 * Anonymous services: 
-  * [documentation](missing-link-to-hexdocs)
-  * [example](./examples/apps/anon_worker)
+    * documentation: `Service.Anonymous`
+    * [example](./examples/apps/anon_worker)
   
 * Named services: 
-  * [documentation](missing-link-to-hexdocs)
-  * [example](./examples/apps/named_worker)
+    * documentation: `Service.Named`
+    * [example](./examples/apps/named_worker)
   
 * Pooled services: 
-  * [documentation](missing-link-to-hexdocs)
-  * [example](./examples/apps/pooled_named_worker)
+    * documentation: `Service.Pooled`
+    * [example](./examples/apps/pooled_named_worker)
   
-* [Some background](./background.md)
+* [Some background](./background.html)
 
+# To do
+
+* [ ] Implement anonymous pools
+* [ ] Add declarative supervision (when child_spec becomes available)
+* [ ] Tests!
 
 # Author
 
 Dave Thomas  (dave@pragdave.me, @pragdave)
 
-License: see the file [LICENSE.md](./LICENSE.md)
+License: see the file [LICENSE.md](./LICENSE.html)
 
 
 

@@ -4,8 +4,10 @@ defmodule Service.Common do
   
   # state that we store as we're building the module
   
-  # We replace the regular def with something that records the definition in
-  # a list. No code is emitted here—that happens in the before_compile hook
+  @doc """
+  We replace the regular def with something that records the definition in
+  a list. No code is emitted here—that happens in the before_compile hook
+  """
   
   defmacro def(call, body) do
     func = { call, body }
@@ -39,7 +41,7 @@ defmodule Service.Common do
   
   # The strategy is the module (Anonymous, Named, Pooled)
 
-  
+  @doc false
   def generate_common_code(strategy, opts, name) do
     PreprocessorState.start_link(opts)
     
@@ -79,6 +81,7 @@ defmodule Service.Common do
     |> maybe_show_generated_code(opts)
   end
 
+  @doc false
   def generate_code(strategy) do
     
     { options, apis, handlers, implementations, _delegators } =
@@ -98,6 +101,7 @@ defmodule Service.Common do
     |> maybe_show_generated_code(options)
   end
 
+  @doc false
   def create_functions_from_originals(strategy) do
     options = PreprocessorState.options()
     
@@ -123,14 +127,17 @@ defmodule Service.Common do
   end
 
     
+  @doc false
   def create_genserver_response(response = {:reply, _, _}, _state) do
     response
   end
 
+  @doc false
   def create_genserver_response(response, state) do
     { :reply, response, state }
   end
   
+  @doc false
   def maybe_show_generated_code(code, opts) do
     if opts[:show_code] do
       IO.puts ""
