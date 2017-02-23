@@ -12,8 +12,7 @@ defmodule Service.Mixfile do
 
   def application do
     [
-      extra_applications: [:logger, :poolboy],
-      mod: {Service.Application, []}
+      extra_applications: [:logger ],  #, :poolboy],
     ]
   end
 
