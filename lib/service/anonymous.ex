@@ -1,21 +1,76 @@
 defmodule Service.Anonymous do
 
-#  require Service.Common
+  @moduledoc """
+  Implement an anonymous service.
+
+  ### Usage
+
+  To create the service:
+
+  * Create a module that implements the API you want. This API will be
+    expressed as a set of public functions. For this example, we'll
+    call the module `MyService`.
+
+  * Add the line `use Service.Anonymous` to the top of this module.
+
+  To consume the service:
+
+  * Create an instance of the service with `MyService.run`. You can pass 
+    initial state to the service as an optional parameter. This call returns
+    a handle to this service instance.
+
+  * Call the API functions in the service, adding the handle as a first parameter.
+
+
+  ### Example
+
+      defmodule Accumulator do
+     
+        def current_value(acc), do: acc
+        def increment(acc, by \\ 1) do
+          update_state(acc + by)
+        end
+      end
   
+      with acc = Accumulator.run(10) do
+        Accumulator.increment(acc, 3)      
+        Accumulator.increment(acc, 2)
+        Accumulator.current_value(acc)   # => 15
+      end
+
+  ### Options
+
+  You can pass a keyword list to `use Service.Anonymous`.
+
+  * `state: `_value_
+
+    Set the detail initial state of the service to `value`. This can be 
+    overridden by passing a different value to the `run` function.
+
+  * `showcode: `_boolean_
+
+    If truthy, dump a representation of the generated code to STDOUT during
+    compilation
+
+  """
+  @doc false
   defmacro __using__(opts \\ []) do
     Service.Common.generate_common_code(__MODULE__, opts, _name = nil)
   end
 
+  @doc false
   defmacro generate_code_callback(_) do
     Service.Common.generate_code(__MODULE__)
   end
   
+  @doc false
   def generate_api_call(_options, {call, _body}) do
     quote do
       def(unquote(call), do: unquote(api_body(call)))
     end
   end
 
+  @doc false
   defp api_body(call) do
     { server, request } = call_signature(call)
     quote do
@@ -23,6 +78,7 @@ defmodule Service.Anonymous do
     end
   end
   
+  @doc false
   def generate_handle_call(_options, {call, _body}) do
     { state, request } = call_signature(call)
     quote do
@@ -33,7 +89,7 @@ defmodule Service.Anonymous do
     end
   end
 
-
+  @doc false
   def generate_implementation(_options, {call, body}) do
     quote do
       def(unquote(call), unquote(body))
@@ -41,17 +97,16 @@ defmodule Service.Anonymous do
   end
 
   # only used for pools
+  @doc false
   def generate_delegator(_options, {_call, _body}), do: nil
   
   # given def fred(store, a, b) return { store, { :fred, a, b }}
-
+  @doc false
   def call_signature({ name, _, [ server | args ] }) do
     {
       var!(server),
       { :{}, [], [ name |  Enum.map(args, fn a -> var!(a) end) ] }
     }
   end
-
-
   
 end
