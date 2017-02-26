@@ -1,6 +1,6 @@
 defmodule Service.Common do
 
-  alias Service.Util.PreprocessorState
+  alias Service.Util.PreprocessorState, as: PS
   
   # state that we store as we're building the module
   
@@ -9,11 +9,11 @@ defmodule Service.Common do
   a list. No code is emitted here—that happens in the before_compile hook
   """
   
-  defmacro def(call, body), do: def_implementation(call, body)
+  defmacro def(call, body), do: def_implementation(__CALLER__.module, call, body)
 
   # so I can test
-  def def_implementation(call, body) do
-    PreprocessorState.add_function({ call, body })
+  def def_implementation(caller, call, body) do
+    PS.add_function(caller, { call, body })
     nil
   end
   
@@ -44,8 +44,8 @@ defmodule Service.Common do
   # The strategy is the module (Anonymous, Named, Pooled)
 
   @doc false
-  def generate_common_code(strategy, opts, name) do
-    PreprocessorState.start_link(opts)
+  def generate_common_code(caller, strategy, opts, name) do
+    PS.start_link(caller, opts)
     
     state = Keyword.get(opts, :state, :no_state)
     server_opts = if name do [ name: name ] else [ ] end
@@ -84,12 +84,12 @@ defmodule Service.Common do
   end
 
   @doc false
-  def generate_code(strategy) do
+  def generate_code(caller, strategy) do
     
     { options, apis, handlers, implementations, _delegators } =
-      create_functions_from_originals(strategy)
+      create_functions_from_originals(caller, strategy)
     
-    PreprocessorState.stop()
+    PS.stop(caller)
     
     quote do
       use GenServer
@@ -104,10 +104,10 @@ defmodule Service.Common do
   end
 
   @doc false
-  def create_functions_from_originals(strategy) do
-    options = PreprocessorState.options()
+  def create_functions_from_originals(caller, strategy) do
+    options = PS.options(caller)
     
-    PreprocessorState.function_list
+    PS.function_list(caller)
     |> Enum.reduce({nil, [], [], [], []}, &generate_functions(strategy, options, &1, &2))
   end
 

@@ -88,12 +88,16 @@ defmodule Service.Named do
   
   @doc false
   defmacro __using__(opts \\ []) do
-    Service.Common.generate_common_code(__MODULE__, opts, service_name(opts))
+    Service.Common.generate_common_code(
+      __CALLER__.module,
+      __MODULE__,
+      opts,
+      service_name(opts))
   end
 
   @doc false
   defmacro generate_code_callback(_) do
-    Service.Common.generate_code(__MODULE__)
+    Service.Common.generate_code(__CALLER__.module, __MODULE__)
   end
   
   @doc false

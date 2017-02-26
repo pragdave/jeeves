@@ -100,19 +100,19 @@ defmodule Service.Pooled do
   """
 
   
-  alias Service.Util.PreprocessorState
+  alias Service.Util.PreprocessorState, as: PS
 
   @doc false
   defmacro __using__(opts \\ []) do
-    generate_pooled_service(opts)
+    generate_pooled_service(__CALLER__.module, opts)
   end
   
   @doc false
-  def generate_pooled_service(opts) do
+  def generate_pooled_service(caller, opts) do
     name  = Keyword.get(opts, :service_name, :no_name)
     state = Keyword.get(opts, :state,        :no_state)
 
-    PreprocessorState.start_link(opts)
+    PS.start_link(caller, opts)
     
     quote do
       import Kernel,            except: [ def: 2 ]
@@ -140,9 +140,9 @@ defmodule Service.Pooled do
   defmacro generate_code(_) do
 
     { options, apis, handlers, implementations, delegators } =
-      Service.Common.create_functions_from_originals(__MODULE__)
+      Service.Common.create_functions_from_originals(__CALLER__.module, __MODULE__)
     
-    PreprocessorState.stop()
+    PS.stop(__CALLER__.module)
     
     quote do
       

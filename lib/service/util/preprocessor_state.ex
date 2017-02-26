@@ -1,41 +1,39 @@
 defmodule Service.Util.PreprocessorState do
 
-  @name :"-- pragdave.me.preprocessor.state --"
-  
   defstruct(
     functions:  [],     # the list of { call, body }s from each def
     options:    [],     # the options from `use`
    )
   
 
-  def start_link(options) do
+  def start_link(name, options) do
     { :ok, _ } = Agent.start_link(
       fn ->
         %__MODULE__{options: options}
       end,
-      name: @name
-    )    
+      name: name_for(name)
+    )
   end
 
-  def stop do
-    Agent.stop(@name)
+  
+  def stop(name) do
+    Agent.stop(name_for(name))
   end
 
-  def options do
-    Agent.get(@name, &(&1.options))
+  def options(name) do
+    Agent.get(name_for(name), &(&1.options))
   end
   
-  def add_function(func) do
-    Agent.update(@name, fn state ->
+  def add_function(name, func) do
+    Agent.update(name_for(name), fn state ->
       %{ state | functions: [ func | state.functions ] }
     end)
   end
 
-  def function_list do
-    Agent.get(@name, &(&1.functions))
+  def function_list(name) do
+    Agent.get(name_for(name), &(&1.functions))
   end
 
   # only for testing
-  def name, do: @name
-
+  def name_for(name), do: :"-- pragdave.me.preprocessor.state.#{name} --"
 end

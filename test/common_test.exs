@@ -4,12 +4,13 @@ defmodule CommonTest do
   require Service.Common
   alias Service.Common, as: SC
 
+  @name __MODULE__
   
   test "calling `def` adds the function to the preprocessor state, but emits no code" do
-    PS.start_link(nil)
-    result = SC.def_implementation(:dave, :body)
+    PS.start_link(@name, nil)
+    result = SC.def_implementation(@name, :dave, :body)
     assert result == nil
-    assert [ function ] = PS.function_list()
+    assert [ function ] = PS.function_list(@name)
     assert elem(function, 0) == :dave
     assert elem(function, 1) == :body
   end
@@ -27,7 +28,7 @@ defmodule CommonTest do
   end
 
   test "the strategy is called to generate functions" do
-    PS.start_link([])
+    PS.start_link(@name, [])
     func = quote do
       def name(a1, a2) do
         a1 + a2

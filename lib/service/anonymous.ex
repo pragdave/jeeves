@@ -63,12 +63,16 @@ defmodule Service.Anonymous do
 
   @doc false
   defmacro __using__(opts \\ []) do
-    Service.Common.generate_common_code(__MODULE__, opts, _name = nil)
+    Service.Common.generate_common_code(
+      __CALLER__.module,
+      __MODULE__,
+      opts,
+      _name = nil)
   end
 
   @doc false
   defmacro generate_code_callback(_) do
-    Service.Common.generate_code(__MODULE__)
+    Service.Common.generate_code(__CALLER__.module, __MODULE__)
   end
   
   @doc false
@@ -104,8 +108,8 @@ defmodule Service.Anonymous do
     end
   end
 
-  # only used for pools
-  @doc false
+  
+  @doc !"only used for pools"
   def generate_delegator(_options, {_call, _body}), do: nil
   
   # given def fred(store, a, b) return { store, { :fred, a, b }}
