@@ -21,11 +21,11 @@ defmodule Service.Scheduler.PoolSupervisor do
     
     worker_module = opts[:worker_module] || raise("missing worker module name")
     
-    name  = opts[:name]  || MISSING_POOL_NAME
-    pool  = opts[:pool]  || []
-    min   = pool[:min]   || 2
-    max   = pool[:max]   || (min+1) * 2
-    state = opts[:state] || %{}
+    name  = opts[:name]      || MISSING_POOL_NAME
+    pool  = opts[:pool_opts] || []
+    min   = pool[:min]       || 2
+    max   = pool[:max]       || (min+1) * 2
+    state = opts[:state]     || %{}
     
     poolboy_config = [
       name:          { :local, name },
@@ -34,6 +34,9 @@ defmodule Service.Scheduler.PoolSupervisor do
       max_overflow:  max - min,
     ]
 
+    IO.inspect opts
+    IO.inspect poolboy_config
+    
     children = [
       :poolboy.child_spec(name, poolboy_config, state),
     ]

@@ -128,7 +128,7 @@ defmodule Service.Pooled do
             
       def run(state) do
         Service.Scheduler.start_new_pool(worker_module: __MODULE__.Worker,
-          pool_opts: unquote(opts[:pool] || [ min: 2, max: 5]),
+          pool_opts: unquote(opts[:pool] || [ min: 1, max: 4]),
           name: @name,
           state: state)
       end

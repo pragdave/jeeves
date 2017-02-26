@@ -9,12 +9,14 @@ defmodule Service.Common do
   a list. No code is emitted here—that happens in the before_compile hook
   """
   
-  defmacro def(call, body) do
-    func = { call, body }
-    PreprocessorState.add_function(func)
+  defmacro def(call, body), do: def_implementation(call, body)
+
+  # so I can test
+  def def_implementation(call, body) do
+    PreprocessorState.add_function({ call, body })
     nil
   end
-
+  
   @doc """
   Used at the end of a service function to indicate that
   the state should be updated, and to provide a return value. The
@@ -110,7 +112,8 @@ defmodule Service.Common do
   end
 
 
-  defp generate_functions(
+  @doc !"public only for testing"
+  def generate_functions(
     strategy,
     options,
     original_fn,
@@ -127,7 +130,7 @@ defmodule Service.Common do
   end
 
     
-  @doc false
+  @doc !"public only for testing"
   def create_genserver_response(response = {:reply, _, _}, _state) do
     response
   end

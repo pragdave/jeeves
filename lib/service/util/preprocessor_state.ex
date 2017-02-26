@@ -35,4 +35,7 @@ defmodule Service.Util.PreprocessorState do
     Agent.get(@name, &(&1.functions))
   end
 
+  # only for testing
+  def name, do: @name
+
 end
