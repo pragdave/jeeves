@@ -97,6 +97,13 @@ defmodule Service.Pooled do
     If truthy, dump a representation of the generated code to STDOUT during
     compilation.
 
+  * `timeout:` integer or float
+    
+    Specify the timeout to be used when the client calls workers in the pool.
+    If all workers are busy, and none becomes free in that time, an OTP
+    exception is raised. An integer specifies the timeout in milliseconds, and
+    a float in seconds (so 1.5 is the same as 1500).
+
   """
 
   
@@ -174,17 +181,18 @@ defmodule Service.Pooled do
   defdelegate generate_implementation(options,function), to: Service.Named
   
   @doc false
-  def generate_delegator(_options, {call, _body}) do
+  def generate_delegator(options, {call, _body}) do
     quote do
-      def unquote(call), do: unquote(delegate_body(call))
+      def unquote(call), do: unquote(delegate_body(options, call))
     end
   end
 
   @doc false
-  def delegate_body(call) do
+  def delegate_body(options, call) do
+    timeout = options[:timeout] || 5000
     request = Service.Named.call_signature(call)
     quote do
-      Service.Scheduler.run(@name, unquote(request))
+      Service.Scheduler.run(@name, unquote(request), unquote(timeout))
     end
   end
   
