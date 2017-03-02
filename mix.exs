@@ -8,6 +8,12 @@ defmodule Service.Mixfile do
     { :ex_doc,  "~> 0.14", only: :dev, runtime: false }
   ]
 
+  @description """
+  Service is library that transforms regular modules into named or anonymous
+  singleton or pooled GenServers. Just write your business functions, and Service
+  will convert them into an API, a server, and potentially a pooled set of workers.
+  """
+  
   
   # ------------------------------------------------------------
 
@@ -19,6 +25,8 @@ defmodule Service.Mixfile do
       version: @version,
       elixir:  "~> 1.5-dev",
       deps:    @deps,
+      package: package(),
+      description:     @description,
       build_embedded:  @in_production,
       start_permanent: @in_production,
 
@@ -40,4 +48,22 @@ defmodule Service.Mixfile do
     ]
   end
 
+  defp package do
+    [
+      files: [
+        "lib", "mix.exs", "README.md", "LICENSE.md"
+      ],
+      maintainers: [
+        "Dave Thomas <dave@pragdave.me>"
+      ],
+      licenses: [
+        "Apache 2 (see the file LICENSE.md for details)"
+      ],
+      links: %{
+        "GitHub" => "https://github.com/pragdave/service",
+      }
+    ]
+  end  
+  
+  
 end
