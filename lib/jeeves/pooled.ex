@@ -1,4 +1,4 @@
-defmodule Service.Pooled do
+defmodule Jeeves.Pooled do
 
   @moduledoc """
   Implement a singleton (global) named pool of services.
@@ -20,22 +20,22 @@ defmodule Service.Pooled do
     receive the current state in a variable (by default named `state`). There is
     not need to declare this as a parameter.[<small>why?</small>](#why-magic-state).
     If a function wants to change the state, it must end with a call to the
-    `Service.Common.update_state/2` function (which will have been
+    `Jeeves.Common.update_state/2` function (which will have been
     imported into your module automatically).
 
     For this example, we'll call the module `PooledService`.
 
-  * Add the line `use Service.Pooled` to the top of this module.
+  * Add the line `use Jeeves.Pooled` to the top of this module.
 
   * Adjust the other options if required.
 
     To start the pool:
 
-        PooledService.run() 
+        PooledJeeves.run() 
 
     or
 
-        PooledService.run(initial_state) 
+        PooledJeeves.run(initial_state) 
 
   To consume the service:
 
@@ -45,7 +45,7 @@ defmodule Service.Pooled do
   ### Example
 
       defmodule FaceDetector do
-        using Service.Pooled,
+        using Jeeves.Pooled,
               state: %{ algorithm: ViolaJones },
               state_name: :options,
               pool:  [ min: 3, max: 10 ]
@@ -57,7 +57,7 @@ defmodule Service.Pooled do
 
   ### Options
 
-  You can pass a keyword list to `use Service.Anonymous:`
+  You can pass a keyword list to `use Jeeves.Anonymous:`
 
   * `state:` _value_
   
@@ -107,7 +107,7 @@ defmodule Service.Pooled do
   """
 
   
-  alias Service.Util.PreprocessorState, as: PS
+  alias Jeeves.Util.PreprocessorState, as: PS
 
   @doc false
   defmacro __using__(opts \\ []) do
@@ -123,7 +123,7 @@ defmodule Service.Pooled do
     
     quote do
       import Kernel,            except: [ def: 2 ]
-      import Service.Common,    only:   [ def: 2, set_state: 2 ]
+      import Jeeves.Common,    only:   [ def: 2, set_state: 2 ]
       
       @before_compile { unquote(__MODULE__), :generate_code }
       
@@ -134,20 +134,20 @@ defmodule Service.Pooled do
       end
             
       def run(state) do
-        Service.Scheduler.start_new_pool(worker_module: __MODULE__.Worker,
+        Jeeves.Scheduler.start_new_pool(worker_module: __MODULE__.Worker,
           pool_opts: unquote(opts[:pool] || [ min: 1, max: 4]),
           name: @name,
           state: state)
       end
     end
-    |> Service.Common.maybe_show_generated_code(opts)
+    |> Jeeves.Common.maybe_show_generated_code(opts)
   end
 
   @doc false
   defmacro generate_code(_) do
 
     { options, apis, handlers, implementations, delegators } =
-      Service.Common.create_functions_from_originals(__CALLER__.module, __MODULE__)
+      Jeeves.Common.create_functions_from_originals(__CALLER__.module, __MODULE__)
     
     PS.stop(__CALLER__.module)
     
@@ -170,15 +170,15 @@ defmodule Service.Pooled do
         
       end
     end
-    |> Service.Common.maybe_show_generated_code(options)
+    |> Jeeves.Common.maybe_show_generated_code(options)
   end
 
   @doc false
-  defdelegate generate_api_call(options,function),       to: Service.Named
+  defdelegate generate_api_call(options,function),       to: Jeeves.Named
   @doc false
-  defdelegate generate_handle_call(options,function),    to: Service.Named
+  defdelegate generate_handle_call(options,function),    to: Jeeves.Named
   @doc false
-  defdelegate generate_implementation(options,function), to: Service.Named
+  defdelegate generate_implementation(options,function), to: Jeeves.Named
   
   @doc false
   def generate_delegator(options, {call, _body}) do
@@ -190,9 +190,9 @@ defmodule Service.Pooled do
   @doc false
   def delegate_body(options, call) do
     timeout = options[:timeout] || 5000
-    request = Service.Named.call_signature(call)
+    request = Jeeves.Named.call_signature(call)
     quote do
-      Service.Scheduler.run(@name, unquote(request), unquote(timeout))
+      Jeeves.Scheduler.run(@name, unquote(request), unquote(timeout))
     end
   end
   

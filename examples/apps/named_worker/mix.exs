@@ -1,4 +1,4 @@
-defmodule AnonWorker.Mixfile do
+defmodule NamedWorker.Mixfile do
   use Mix.Project
 
   @name    :named_worker

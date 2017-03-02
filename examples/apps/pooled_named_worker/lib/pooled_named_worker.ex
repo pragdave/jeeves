@@ -1,7 +1,7 @@
 defmodule PooledNamedWorker do
 
   use(
-    Service.Pooled,
+    Jeeves.Pooled,
     state:        %{ a: 1 },
     service_name: Vince,
     pool:         [ min: 1, max: 4 ],

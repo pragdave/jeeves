@@ -1,5 +1,5 @@
 defmodule T1 do
-  use Service.Anonymous, state: 99
+  use Jeeves.Anonymous, state: 99
   
   def api1(state, p1) do
     state + p1

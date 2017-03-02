@@ -13,7 +13,7 @@ supervised and run in a separate, parallel process:
 
 ~~~ elixir
 defmodule Fib do
-  use Service.Pooled
+  use Jeeves.Pooled
 
   def fib(n), do: _fib(n)
 
@@ -40,7 +40,7 @@ process O(n) rather than O(1.6ⁿ).
 
 ~~~ elixir
 defmodule Fib do
-  use Service.Pooled, 
+  use Jeeves.Pooled, 
       state:       %{ 0 => 0, 1 => 1}, 
       state_name: :cache
 
@@ -65,7 +65,7 @@ we can add it as a named service:
 
 ~~~ elixir
 defmodule FibCache do
-  use Service.Named, state: %{ 0 => 0, 1 => 1 }
+  use Jeeves.Named, state: %{ 0 => 0, 1 => 1 }
 
   def get(n), do: state[n]
   def put(n, fib_n) do
@@ -76,7 +76,7 @@ defmodule FibCache do
 end
 
 defmodule Fib do
-  use Service.Pooled, 
+  use Jeeves.Pooled, 
 
   def fib(n) do
     case FibCache.get(n) do
@@ -94,7 +94,7 @@ end
 end _tl;dr_
 ----
 
-# Service
+# Jeeves—at your service
 
 Erlang encourages us to write our code as self-contained servers and
 applications. Elixir makes it even easier by removing much of the
@@ -104,7 +104,7 @@ However, creating these servers is often more work than it needs to
 be. And, unfortunately, following good design practices adds even more
 work, in the form of duplication.
 
-The Service library aims to make it easier for newcomers to craft
+The Jeeves library aims to make it easier for newcomers to craft
 well designed services. It doesn't replace GenServer. It is simply a
 layer on top that handles the most common GenServer use cases. The
 intent is to remove any excuse that people might have for not writing
@@ -118,16 +118,16 @@ of an object. It is self contained, with private state, and with an
 interface that is accessed by sending messages. This harks straight
 back to the early days of Smalltalk.
 
-Service draws on that idea. When you include it in a module, that
+Jeeves draws on that idea. When you include it in a module, that
 module's public functions become the interface to the service. You
-write the functions, and Service rewrites them into a GenServer.
+write the functions, and Jeeves rewrites them into a GenServer.
 
 Here's a simple service that implements a key-value store.
 
 ~~~ elixir
 defmodule KVStore do
 
-  use Service.Anonymous, state: %{}
+  use Jeeves.Anonymous, state: %{}
 
   def put(store, key, value) do
     set_state(Map.put(store, key, value)) do
@@ -153,7 +153,7 @@ KVStore.put(rt, :name, "Elixir")
 KVStore.get(rt, :name)   # => "Elixir"
 ~~~
 
-Behind the scenes, Service has created a pure implementation of our
+Behind the scenes, Jeeves has created a pure implementation of our
 totaller, along with a GenServer that delegates to that
 implementation. What does that code look like? Add the `:show_code`
 option to our original source.
@@ -161,7 +161,7 @@ option to our original source.
 ~~~ elixir
 defmodule KVStore do
 
-  use Service.Anonymous, 
+  use Jeeves.Anonymous, 
       state: %{},
       show_code: true
 
@@ -177,8 +177,8 @@ During compilation, you'll see the code that will actually be run:
 # defmodule RunningTotal do
 
   import(Kernel, except: [def: 2])
-  import(Service.Common, only: [def: 2, set_state: 2])
-  @before_compile({Service.Anonymous, :generate_code_callback})
+  import(Jeeves.Common, only: [def: 2, set_state: 2])
+  @before_compile({Jeeves.Anonymous, :generate_code_callback})
   def run() do
     run(%{})
   end
@@ -207,11 +207,11 @@ During compilation, you'll see the code that will actually be run:
   end
   def handle_call({:put, key, value}, _, store) do
     __MODULE__.Implementation.put(store, key, value)
-    |> Service.Common.create_genserver_response(store)                                                                  
+    |> Jeeves.Common.create_genserver_response(store)                                                                  
   end
   def handle_call({:get, key}, _, store) do
     __MODULE__.Implementation.get(store, key)
-    |> Service.Common.create_genserver_response(store)                                                                         
+    |> Jeeves.Common.create_genserver_response(store)                                                                         
   end
   
   defmodule Implementation do
@@ -257,7 +257,7 @@ We can make out KV store a global _named service_ with some trivial changes:
 ~~~ elixir
 defmodule NamedKVStore do
 
-  use Service.Named, 
+  use Jeeves.Named, 
       state_name:   :kvs, 
       state:        %{}, 
 
@@ -293,12 +293,12 @@ NamedKVStore.get(:name)            # => "Elixir"
 
 ## Pooled Services
 
-Named services can be turned into pools of workers by changing to `Service.Pooled`.
+Named services can be turned into pools of workers by changing to `Jeeves.Pooled`.
 
 ~~~ elixir
 defmodule TwitterFeed do
 
-  use Service.Pooled,
+  use Jeeves.Pooled,
       pool: [ min: 5, max: 20 ]
 
   def fetch(name) do
@@ -313,12 +313,12 @@ Calls to `TwitterFeed.fetch` would run in parallel, up to a maximum of
 
 ## Inline code
 
-Finally, we can tell Service not to generate a server at all.
+Finally, we can tell Jeeves not to generate a server at all.
 
 ~~~ elixir
 defmodule RunningTotal do
 
-  use Service.Inline, state: 0
+  use Jeeves.Inline, state: 0
 
   def add(total, value) do
     set_state(value+total)
@@ -333,15 +333,15 @@ declaration in the module.
 # More Information
 
 * Anonymous services: 
-    * documentation: `Service.Anonymous`
+    * documentation: `Jeeves.Anonymous`
     * [example](./examples/apps/anon_worker)
   
 * Named services: 
-    * documentation: `Service.Named`
+    * documentation: `Jeeves.Named`
     * [example](./examples/apps/named_worker)
   
 * Pooled services: 
-    * documentation: `Service.Pooled`
+    * documentation: `Jeeves.Pooled`
     * [example](./examples/apps/pooled_named_worker)
   
 * [Some background](./background.html)

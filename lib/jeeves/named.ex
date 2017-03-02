@@ -1,4 +1,4 @@
-defmodule Service.Named do
+defmodule Jeeves.Named do
 
   @moduledoc """
   Implement a singleton (global) named service.
@@ -13,16 +13,16 @@ defmodule Service.Named do
     not need to declare this as a
      parameter.[<small><small>[why?]</small></small>](background.html#why-magic-state).
     If a function wants to change the state, it must end with a call to the
-    `Service.Common.update_state/2` function (which will have been
+    `Jeeves.Common.update_state/2` function (which will have been
     imported into your module automatically).
 
     For this example, we'll call the module `NamedService`.
 
-  * Add the line `use Service.Named` to the top of this module.
+  * Add the line `use Jeeves.Named` to the top of this module.
 
   To consume the service:
 
-  * Create an instance of the service with `NamedService.run()`. You can pass 
+  * Create an instance of the service with `NamedJeeves.run()`. You can pass 
     initial state to the service as an optional parameter. This call returns
     a handle to this service instance, but you shouldn't use it.
 
@@ -32,7 +32,7 @@ defmodule Service.Named do
   ### Example
 
       defmodule KV do
-        using Service.Named, state: %{}
+        using Jeeves.Named, state: %{}
 
         def get(name), do: state[name]
         def put(name, value) do
@@ -50,7 +50,7 @@ defmodule Service.Named do
 
   ### Options
 
-  You can pass a keyword list to `use Service.Anonymous:`
+  You can pass a keyword list to `use Jeeves.Anonymous:`
 
   * `state:` _value_
 
@@ -61,7 +61,7 @@ defmodule Service.Named do
     previous example to use `store` for the state with:
 
         defmodule KV do
-          using Service.Named, state: %{}, state_name: :store
+          using Jeeves.Named, state: %{}, state_name: :store
 
           def get(name), do: store[name]
           def put(name, value) do
@@ -84,11 +84,11 @@ defmodule Service.Named do
   """
 
   
-  require Service.Common
+  require Jeeves.Common
   
   @doc false
   defmacro __using__(opts \\ []) do
-    Service.Common.generate_common_code(
+    Jeeves.Common.generate_common_code(
       __CALLER__.module,
       __MODULE__,
       opts,
@@ -97,7 +97,7 @@ defmodule Service.Named do
 
   @doc false
   defmacro generate_code_callback(_) do
-    Service.Common.generate_code(__CALLER__.module, __MODULE__)
+    Jeeves.Common.generate_code(__CALLER__.module, __MODULE__)
   end
   
   @doc false
@@ -124,7 +124,7 @@ defmodule Service.Named do
     quote do
       def handle_call(unquote(request), _, unquote(state_var)) do
         __MODULE__.Implementation.unquote(api_call)
-        |> Service.Common.create_genserver_response(unquote(state_var))
+        |> Jeeves.Common.create_genserver_response(unquote(state_var))
       end
     end
   end

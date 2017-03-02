@@ -1,5 +1,5 @@
-defmodule ServiceTest do
+defmodule JeevesTest do
   use ExUnit.Case
-  doctest Service
+  doctest Jeeves
 
 end

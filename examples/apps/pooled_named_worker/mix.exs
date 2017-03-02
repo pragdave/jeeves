@@ -1,7 +1,7 @@
-defmodule AnonWorker.Mixfile do
+defmodule PooledNamedWorker.Mixfile do
   use Mix.Project
 
-  @name    :named_worker
+  @name    :pooled_named_worker
   @version "0.1.0"
   @deps [
     service: [ path: "../../.." ]

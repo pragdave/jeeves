@@ -1,8 +1,8 @@
 defmodule CommonTest do
   use ExUnit.Case
-  alias Service.Util.PreprocessorState, as: PS
-  require Service.Common
-  alias Service.Common, as: SC
+  alias Jeeves.Util.PreprocessorState, as: PS
+  require Jeeves.Common
+  alias Jeeves.Common, as: SC
 
   @name __MODULE__
   

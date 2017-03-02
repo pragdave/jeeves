@@ -1,4 +1,4 @@
-defmodule Service.Anonymous do
+defmodule Jeeves.Anonymous do
 
   @moduledoc """
   Implement an anonymous service.
@@ -11,16 +11,16 @@ defmodule Service.Anonymous do
     expressed as a set of public functions. Each function will be
     defined to accept the current state as its first parameter. If a
     function wants to change the state, it must end with a call to the
-    `Service.Common.update_state/2` function (which will have been
+    `Jeeves.Common.update_state/2` function (which will have been
     imported into your module automatically).
 
     For this example, we'll call the module `MyService`.
 
-  * Add the line `use Service.Anonymous` to the top of this module.
+  * Add the line `use Jeeves.Anonymous` to the top of this module.
 
   To consume the service:
 
-  * Create an instance of the service with `MyService.run()`. You can pass 
+  * Create an instance of the service with `MyJeeves.run()`. You can pass 
     initial state to the service as an optional parameter. This call returns
     a handle to this service instance.
 
@@ -30,7 +30,7 @@ defmodule Service.Anonymous do
   ### Example
 
       defmodule Accumulator do
-        using Service.Anonymous, state: 0
+        using Jeeves.Anonymous, state: 0
 
         def current_value(acc), do: acc
         def increment(acc, by \\ 1) do
@@ -47,7 +47,7 @@ defmodule Service.Anonymous do
 
   ### Options
 
-  You can pass a keyword list to `use Service.Anonymous:`
+  You can pass a keyword list to `use Jeeves.Anonymous:`
 
   * `state:` _value_
 
@@ -63,7 +63,7 @@ defmodule Service.Anonymous do
 
   @doc false
   defmacro __using__(opts \\ []) do
-    Service.Common.generate_common_code(
+    Jeeves.Common.generate_common_code(
       __CALLER__.module,
       __MODULE__,
       opts,
@@ -72,7 +72,7 @@ defmodule Service.Anonymous do
 
   @doc false
   defmacro generate_code_callback(_) do
-    Service.Common.generate_code(__CALLER__.module, __MODULE__)
+    Jeeves.Common.generate_code(__CALLER__.module, __MODULE__)
   end
   
   @doc false
@@ -96,7 +96,7 @@ defmodule Service.Anonymous do
     quote do
       def handle_call(unquote(request), _, unquote(var!(state))) do
         __MODULE__.Implementation.unquote(call)
-        |> Service.Common.create_genserver_response(unquote(var!(state)))
+        |> Jeeves.Common.create_genserver_response(unquote(var!(state)))
       end
     end
   end

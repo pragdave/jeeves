@@ -1,7 +1,7 @@
 defmodule ProcessorStateTest do
   use ExUnit.Case
 
-  alias Service.Util.PreprocessorState, as: PS
+  alias Jeeves.Util.PreprocessorState, as: PS
 
   @some_options %{ name: "Vince", status: "playa" }
 

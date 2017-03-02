@@ -1,6 +1,6 @@
 defmodule KVStore do
 
-  use Service.Anonymous, state: %{}, show_code: true
+  use Jeeves.Anonymous, state: %{}, show_code: true
 
   def put(store, key, value) do
     set_state(Map.put(store, key, value)) do

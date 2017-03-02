@@ -1,6 +1,6 @@
-defmodule Service.Common do
+defmodule Jeeves.Common do
 
-  alias Service.Util.PreprocessorState, as: PS
+  alias Jeeves.Util.PreprocessorState, as: PS
   
   # state that we store as we're building the module
   
@@ -52,7 +52,7 @@ defmodule Service.Common do
     
     quote do
       import Kernel,            except: [ def: 2 ]
-      import Service.Common,    only:   [ def: 2, set_state: 2 ]
+      import Jeeves.Common,    only:   [ def: 2, set_state: 2 ]
 
       @before_compile { unquote(strategy), :generate_code_callback }
 

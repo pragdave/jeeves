@@ -1,4 +1,4 @@
-defmodule Service.Scheduler.PoolSupervisor do
+defmodule Jeeves.Scheduler.PoolSupervisor do
 
   use Supervisor
 

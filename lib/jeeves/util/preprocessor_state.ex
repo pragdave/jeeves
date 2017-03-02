@@ -1,4 +1,4 @@
-defmodule Service.Util.PreprocessorState do
+defmodule Jeeves.Util.PreprocessorState do
 
   defstruct(
     functions:  [],     # the list of { call, body }s from each def

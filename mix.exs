@@ -1,4 +1,4 @@
-defmodule Service.Mixfile do
+defmodule Jeeves.Mixfile do
   use Mix.Project
 
   @version "0.1.0"
@@ -17,23 +17,23 @@ defmodule Service.Mixfile do
   
   # ------------------------------------------------------------
 
-  @in_production Mix.env == :prod
   
   def project do
+    in_production = Mix.env == :prod
     [
-      app:     :service,
+      app:     :jeeves,
       version: @version,
       elixir:  "~> 1.5-dev",
       deps:    @deps,
       package: package(),
       description:     @description,
-      build_embedded:  @in_production,
-      start_permanent: @in_production,
+      build_embedded:  in_production,
+      start_permanent: in_production,
 
       # Docs
       name: "Service",
-      source_url: "https://github.com/pragdave/service",
-      homepage_url: "https://github.com/pragdave/service",
+      source_url: "https://github.com/pragdave/jeeves",
+      homepage_url: "https://github.com/pragdave/jeeves",
       docs: [
         main:   "README", 
 #        logo:   "path/to/logo.png",
@@ -60,7 +60,7 @@ defmodule Service.Mixfile do
         "Apache 2 (see the file LICENSE.md for details)"
       ],
       links: %{
-        "GitHub" => "https://github.com/pragdave/service",
+        "GitHub" => "https://github.com/pragdave/jeeves",
       }
     ]
   end  

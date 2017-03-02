@@ -1,19 +1,23 @@
-# AnonWorker
+# Pooled Named Worker
 
-**TODO: Add description**
+    $ iex -S mix
+    iex(1)> PooledNamedWorker.run
+    [worker_module: PooledNamedWorker.Worker, pool_opts: [min: 1, max: 4],
+     name: Vince, state: %{a: 1}]
+    [worker_module: PooledNamedWorker.Worker, pool_opts: [min: 1, max: 4],
+     name: Vince, state: %{a: 1}]
+    [name: {:local, Vince}, worker_module: PooledNamedWorker.Worker, size: 1,
+     max_overflow: 3]
+    {:ok, #PID<0.214.0>}
 
-## Installation
+    iex(2)> PooledNamedWorker.process
+    in pool worker #PID<0.217.0> %{a: 1}
+    "#PID<0.217.0> done"
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `anon_worker` to your list of dependencies in `mix.exs`:
+    iex(3)> PooledNamedWorker.process
+    in pool worker #PID<0.217.0> %{a: 2}
+    "#PID<0.217.0> done"
 
-```elixir
-def deps do
-  [{:anon_worker, "~> 0.1.0"}]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/anon_worker](https://hexdocs.pm/anon_worker).
-
+    iex(4)> PooledNamedWorker.process
+    in pool worker #PID<0.217.0> %{a: 3}
+    "#PID<0.217.0> done"

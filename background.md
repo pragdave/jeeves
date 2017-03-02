@@ -89,7 +89,7 @@ defmodule MyLogger do
 
   defstruct device: :stdio
 
-  use Service.Named,
+  use Jeeves.Named,
       state: [ logger: %MyLogger{} ]
 
   def info(msg) do
@@ -129,7 +129,7 @@ to the implicit `this` variable in OO code.
 ~~~ elixir
 defmodule KVStore do
 
-  use Service.Anonymous
+  use Jeeves.Anonymous
       state: %{}
 
   def put(store, key, value) do
@@ -164,7 +164,7 @@ returns the updated state.
 ~~~ elixir
 defmodule KVStore do
 
-  use Service.Anonymous
+  use Jeeves.Anonymous
       state: %{}
 
   def init_state(default_state, initial_values) when is_list(initial_values) do
@@ -195,7 +195,7 @@ the `pool:` option:
 defmodule DBConnection do
   defstruct conn: nil, created: fn () -> DateTime.utc_now() end
 
-  use(Service.Named,
+  use(Jeeves.Named,
       state: [ db: %DBConnection{} ],
       pool:  [ min: 2, max: 10, retire_after: 5*60 ])
 
@@ -234,7 +234,7 @@ result = DBConnection.execute("select * from table1")
     defmodule DBConnection do
       defstruct conn: nil, created: fn () -> DateTime.utc_now() end
     
-      use(Service.Pool,
+      use(Jeeves.Pool,
           state: [ db: %DBConnection{} ],
           pool:  [ min: 2, max: 10, retire_after: 5*60 ])
     
@@ -261,7 +261,7 @@ result = DBConnection.execute("select * from table1")
 
 ## Pooled Supervision
 
-When you create a pooled service, Service always creates a couple of
+When you create a pooled service, Jeeves always creates a couple of
 supervisors and a scheduler process. This looks like the following:
 
 

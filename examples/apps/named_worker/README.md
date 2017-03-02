@@ -1,19 +1,15 @@
-# AnonWorker
+# Named Worker
 
-**TODO: Add description**
+    $ iex -S mix
+    iex(1)> NamedKVStore.run %{name: "Dave"}
+    #PID<0.186.0>
 
-## Installation
+    iex(2)> NamedKVStore.put :born, "UK"
+    "UK"
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `anon_worker` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:anon_worker, "~> 0.1.0"}]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/anon_worker](https://hexdocs.pm/anon_worker).
+    iex(3)> NamedKVStore.get :name
+    "Dave"
+    
+    iex(4)> NamedKVStore.get :born
+    "UK"
 

@@ -1,5 +1,5 @@
 defmodule N1 do
-  use Service.Named, state: 99, name: Fred
+  use Jeeves.Named, state: 99, name: Fred
   
   def api1(p1) do
     state + p1
