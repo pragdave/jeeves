@@ -9,8 +9,8 @@ defmodule Jeeves.Mixfile do
   ]
 
   @description """
-  Service is library that transforms regular modules into named or anonymous
-  singleton or pooled GenServers. Just write your business functions, and Service
+  Jeeves is library that transforms regular modules into named or anonymous
+  singleton or pooled GenServers. Just write your business functions, and Jeeves
   will convert them into an API, a server, and potentially a pooled set of workers.
   """
   
@@ -31,7 +31,7 @@ defmodule Jeeves.Mixfile do
       start_permanent: in_production,
 
       # Docs
-      name: "Service",
+      name: "Jeeves",
       source_url: "https://github.com/pragdave/jeeves",
       homepage_url: "https://github.com/pragdave/jeeves",
       docs: [
