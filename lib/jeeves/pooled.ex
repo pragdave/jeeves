@@ -123,7 +123,7 @@ defmodule Jeeves.Pooled do
     
     quote do
       import Kernel,            except: [ def: 2 ]
-      import Jeeves.Common,    only:   [ def: 2, set_state: 2 ]
+      import Jeeves.Common,    only:   [ def: 2, set_state: 1, set_state: 2 ]
       
       @before_compile { unquote(__MODULE__), :generate_code }
       

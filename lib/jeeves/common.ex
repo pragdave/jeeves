@@ -62,7 +62,7 @@ defmodule Jeeves.Common do
     
     quote do
       import Kernel,            except: [ def: 2 ]
-      import Jeeves.Common,    only:   [ def: 2, set_state: 2 ]
+      import Jeeves.Common,    only:   [ def: 2, set_state: 1, set_state: 2 ]
 
       @before_compile { unquote(strategy), :generate_code_callback }
 
