@@ -20,6 +20,10 @@ defmodule CommonTest do
     assert { :reply, :value, :new_state } == SC.set_state(:new_state, do: :value)
   end
 
+  test "set_state() with no block returns an OTP reply with the new state and value" do
+    assert { :reply, :new_state, :new_state } == SC.set_state(:new_state)
+  end
+  
   defmodule TestStrategy do
     def generate_api_call(_options, _func),       do: :api
     def generate_handle_call(_options, _func),    do: :handle

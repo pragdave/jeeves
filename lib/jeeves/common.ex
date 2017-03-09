@@ -33,7 +33,17 @@ defmodule Jeeves.Common do
         end
       end
   
+
+  With no do: block, returns the new state as the reply value.
   """
+
+  defmacro set_state(new_state) do
+    quote bind_quoted: [ state: new_state ] do
+      { :reply, state, state }
+    end
+  end
+  
+
   defmacro set_state(new_state, do: return) do
     quote do
       { :reply, unquote(return), unquote(new_state) }
