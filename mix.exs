@@ -1,7 +1,7 @@
 defmodule Jeeves.Mixfile do
   use Mix.Project
 
-  @version "0.1.2"
+  @version "0.1.3"
 
   @deps [
     { :poolboy, "~> 1.5.0" },
@@ -23,7 +23,7 @@ defmodule Jeeves.Mixfile do
     [
       app:     :jeeves,
       version: @version,
-      elixir:  "~> 1.5-dev",
+      elixir:  ">= 1.4.2",
       deps:    @deps,
       package: package(),
       description:     @description,

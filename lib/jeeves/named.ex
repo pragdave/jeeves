@@ -162,6 +162,15 @@ defmodule Jeeves.Named do
 
   @doc false
   def state_name(options) do
-    options[:state_name] || :state
+    check_state_name(options[:state_name])
+  end
+
+  defp check_state_name(nil), do: :state
+  defp check_state_name(name) when is_atom(name), do: name
+  defp check_state_name({name, _, _}) do
+    raise CompileError, description: "state_name: “#{name}” should be an atom, not a variable"
+  end
+  defp check_state_name(name) do
+    raise CompileError, description: "state_name: “#{inspect name}” should be an atom"
   end
 end

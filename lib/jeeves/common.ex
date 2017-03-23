@@ -1,13 +1,39 @@
 defmodule Jeeves.Common do
 
   alias Jeeves.Util.PreprocessorState, as: PS
+
+
+  @dont_override [
+    :initial_state,
+    :setup_worker_state,
+    :start,
+    :start_link,
+    :stop,
+  ]
+
+  @in_genserver [
+    :init,
+    :handle_call,
+    :handle_cast,
+    :handle_info,
+  ]
   
-  # state that we store as we're building the module
   
   @doc """
   We replace the regular def with something that records the definition in
   a list. No code is emitted here—that happens in the before_compile hook
   """
+  defmacro def(call = {name, _, _}, body) when name in @dont_override do
+    quote do
+      Kernel.def(unquote(call), unquote(body))
+    end
+  end
+
+  defmacro def(call = {name, _, _}, body) when name in @in_genserver do
+    quote do
+      Kernel.def(unquote(call), unquote(body))
+    end
+  end
   
   defmacro def(call, body), do: def_implementation(__CALLER__.module, call, body)
 
@@ -57,38 +83,42 @@ defmodule Jeeves.Common do
   def generate_common_code(caller, strategy, opts, name) do
     PS.start_link(caller, opts)
     
-    state = Keyword.get(opts, :state, :no_state)
+    default_state = Keyword.get(opts, :state, :no_state)
     server_opts = if name do [ name: name ] else [ ] end
     
     quote do
-      import Kernel,            except: [ def: 2 ]
-      import Jeeves.Common,    only:   [ def: 2, set_state: 1, set_state: 2 ]
+      import Kernel,        except: [ def: 2 ]
+      import Jeeves.Common, only:   [ def: 2, set_state: 1, set_state: 2 ]
 
       @before_compile { unquote(strategy), :generate_code_callback }
 
       def run() do
-        run(unquote(state))
+        run(unquote(default_state))
       end
       
-      def run(state) do
-        # state = initial_state(state_override, unquote(state))
+      def run(state_override) do
+        state = initial_state(state_override, unquote(default_state))
         { :ok, pid } = GenServer.start_link(__MODULE__, state, server_opts())
         pid
       end
 
+      def start_link(state_override) do
+        { :ok, run(state_override) }
+      end
+        
       def init(state) do
         { :ok, state }
       end
       
-      def initial_state(default_state, _your_state) do
-        default_state
+      def initial_state(override, _default) do
+        override
       end
 
       def server_opts() do
         unquote(server_opts)
       end
 
-      defoverridable [ initial_state: 2 ]
+      defoverridable [ initial_state: 2, init: 1 ]
     end
     |> maybe_show_generated_code(opts)
   end
