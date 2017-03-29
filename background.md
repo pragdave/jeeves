@@ -68,7 +68,7 @@ as a logger, we might write:
 ~~~ elixir
 Logger.info("Starting")
 ~~~
-    
+
 For an anonymous service, such as a database connection, we need to
 create it to get a handle, and then pass that handle to it on each
 request.
@@ -79,7 +79,7 @@ request.
 DB.insert(handle, «stuff»)
 ~~~
 
-Because of this, Diet.Service comes in two flavors, one for named
+Because of this, Jeeves comes in two flavors, one for named
 services and one for anonymous ones.
 
 ## Defining a Named Service
@@ -95,7 +95,7 @@ defmodule MyLogger do
   def info(msg) do
     IO.puts(logger.device, "-- #{msg}")
   end
-  
+
   def set_device(new_device) do
     set_state(%{ logger | device: new_device}) do
       :ok
@@ -135,7 +135,7 @@ defmodule KVStore do
   def put(store, key, value) do
     set_state(Map.put(store, key, value), do: value
   end
-  
+
   def get(store, key) do
     store[key]
   end
@@ -170,7 +170,7 @@ defmodule KVStore do
   def init_state(default_state, initial_values) when is_list(initial_values) do
     initial_values |> Enum.into(default_state)
   end
-  
+
   # ...
 end
 ~~~
@@ -226,31 +226,31 @@ result = DBConnection.execute("select * from table1")
 #### anon pools NYI
     You can also create anonymous pools. As with other anonymous services,
     you'll need to keep track of the handle.
-    
+
     Here's the same database connection pool code, but set up to allow you
     to create different pools for different databases.
-    
+
     ~~~ elixir
     defmodule DBConnection do
       defstruct conn: nil, created: fn () -> DateTime.utc_now() end
-    
+
       use(Jeeves.Pool,
           state: [ db: %DBConnection{} ],
           pool:  [ min: 2, max: 10, retire_after: 5*60 ])
-    
+
       def init_state(state, connection_params) do
         conn = PG.connect(connection_params)
         %{ state | conn: conn }
       end
-    
+
       def execute(stmt) do
         PG.execute(db.conn, stmt)
       end
       # ...
     end
     ~~~
-    
-    The only changes were to alter the type to `Diet.Service.Anonymous`
+
+    The only changes were to alter the type to `Jeeves.Anonymous`
     and to change the `new` function to accept the database connection to
     be used.
 
@@ -294,7 +294,7 @@ talking to the scheduler process.
 
 ## State Protection (NYI)
 
-If you add the option `protect_state: true`, Diet will automatically
+If you add the option `protect_state: true`, Jeeves will automatically
 create an additional top-level supervisor and a vault process that does
 nothing but save the state of services between requests. Should a
 service crash, the supervisor will restart it using the saved state
