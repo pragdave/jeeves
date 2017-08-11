@@ -344,7 +344,7 @@ declaration in the module.
     * documentation: `Jeeves.Pooled`
     * [example](./examples/apps/pooled_named_worker)
   
-* [Some background](./background.html)
+* [Some background](./background.md)
 
 # To do
 
