@@ -16,17 +16,19 @@ defmodule Jeeves.Scheduler.PoolSupervisor do
     Supervisor.start_link(__MODULE__, opts)
   end
 
+  @dialyzer { :no_return, init: 1 }
+
   def init(opts) do
     exit_if_no_poolboy()
-    
+
     worker_module = opts[:worker_module] || raise("missing worker module name")
-    
+
     name  = opts[:name]      || MISSING_POOL_NAME
     pool  = opts[:pool_opts] || []
     min   = pool[:min]       || 2
     max   = pool[:max]       || (min+1) * 2
     state = opts[:state]     || %{}
-    
+
     poolboy_config = [
       name:          { :local, name },
       worker_module: worker_module,
@@ -36,7 +38,7 @@ defmodule Jeeves.Scheduler.PoolSupervisor do
 
     IO.inspect opts
     IO.inspect poolboy_config
-    
+
     children = [
       :poolboy.child_spec(name, poolboy_config, state),
     ]
@@ -52,16 +54,16 @@ defmodule Jeeves.Scheduler.PoolSupervisor do
     try do
       :poolboy.child_spec(:a, [], [])
     rescue
-      UndefinedFunctionError -> 
+      UndefinedFunctionError ->
         raise("""
-        
-        You are trying to create a pooled service, but you don't have `poolboy` 
+
+        You are trying to create a pooled service, but you don't have `poolboy`
         listed as a dependency.
-        
+
         You can add
-        
+
         { :poolboy, "~> 1.5.0" }  # or a later version…
-        
+
         to your dependencies to include it in your project.
 
         """)
