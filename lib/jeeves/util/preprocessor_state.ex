@@ -2,9 +2,9 @@ defmodule Jeeves.Util.PreprocessorState do
 
   defstruct(
     functions:  [],     # the list of { call, body }s from each def
-    options:    [],     # the options from `use`
+    options:    []      # the options from `use`
    )
-  
+
 
   def start_link(name, options) do
     { :ok, _ } = Agent.start_link(
@@ -15,7 +15,7 @@ defmodule Jeeves.Util.PreprocessorState do
     )
   end
 
-  
+
   def stop(name) do
     Agent.stop(name_for(name))
   end
@@ -23,7 +23,7 @@ defmodule Jeeves.Util.PreprocessorState do
   def options(name) do
     Agent.get(name_for(name), &(&1.options))
   end
-  
+
   def add_function(name, func) do
     Agent.update(name_for(name), fn state ->
       %{ state | functions: [ func | state.functions ] }
