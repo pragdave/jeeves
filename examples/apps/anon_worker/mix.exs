@@ -4,7 +4,7 @@ defmodule AnonWorker.Mixfile do
   @name :anon_worker
   @version "0.1.0"
   @deps [
-    service: [ path: "../../.." ]
+    jeeves: [ path: "../../.." ]
   ]
 
   ##################################################

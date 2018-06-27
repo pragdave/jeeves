@@ -4,7 +4,7 @@ defmodule PooledNamedWorker.Mixfile do
   @name    :pooled_named_worker
   @version "0.1.0"
   @deps [
-    service: [ path: "../../.." ]
+    jeeves: [ path: "../../.." ]
   ]
 
   ##################################################
