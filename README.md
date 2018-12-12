@@ -273,7 +273,7 @@ defmodule NamedKVStore do
 end
 ~~~
 
-Notice there's a big of magic here. A named service can be called from
+Notice there's a bit of magic here. A named service can be called from
 anywhere in your code. It doesn't require you to remember a PID or any
 other handle, as the service's API invokes the service process by
 name. However, the service process itself contains state (the map in
