@@ -4,7 +4,7 @@ defmodule NamedWorker.Mixfile do
   @name    :named_worker
   @version "0.1.0"
   @deps [
-    service: [ path: "../../.." ]
+    jeeves: [ path: "../../.." ]
   ]
 
   ##################################################

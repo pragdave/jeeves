@@ -4,8 +4,8 @@ defmodule PooledNamedWorker do
     Jeeves.Pooled,
     state:        %{ a: 1 },
     service_name: Vince,
-    pool:         [ min: 1, max: 4 ],
-    debug:        true
+    pool:         [ min: 2, max: 4 ],
+    show_code: true
   )
 
   def process() do
