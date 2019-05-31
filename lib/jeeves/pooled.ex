@@ -161,6 +161,10 @@ defmodule Jeeves.Pooled do
         def start_link(args) do
           GenServer.start_link(__MODULE__, args)
         end
+
+        def init(args), do: {:ok, args}
+
+        defoverridable [init: 1]
         
         unquote_splicing(apis)
         unquote_splicing(handlers)
